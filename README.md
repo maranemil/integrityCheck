@@ -1,7 +1,7 @@
 integrityCheck - Comparison for SugarCRM module installer
 ==========
 
-File Issues On Demand
+### File Issues On Demand - 2015 - SugarCRM 5.6 / SugarCRM 7.1
 
 - pre_execute/0.php
 - Invalid usage of a function ziparchive()
