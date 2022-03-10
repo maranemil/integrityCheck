@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection SpellCheckingInspection */
+/** @noinspection PhpUndefinedVariableInspection */
 
 /**
  * Created by PhpStorm.
@@ -14,7 +15,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-if (!defined('sugarEntry')) define('sugarEntry', true);
+if (!defined('sugarEntry')) {
+    define('sugarEntry', true);
+}
 
 // ini_set('error_reporting', E_ALL);
 // ini_set('display_errors', true);
@@ -29,26 +32,26 @@ if (!defined('sugarEntry')) define('sugarEntry', true);
 // $manifestFile = "upload/upgrades/module/integrityCheck2-manifest.php";
 
 // # GET PACKAGE MODULE THAT BELONGS TO THIS INSTALLER WITH MANIFEST FILE
-$unzip_dir    = $_REQUEST["install_file"];
+$unzip_dir = $_REQUEST["install_file"];
 $manifestFile = str_replace(".zip", "-manifest.php", $_REQUEST["install_file"]);
 
 // # CHECK IF ZIPARCHIVE CLASS IS ACTIV IN PHP
 if (!class_exists('ZipArchive')) {
-   //$myclass = new MyClass();
-   die("Installation cannot continue! <br/> Please check if server has ZipArchive installed! ");
+    //$myclass = new MyClass();
+    die("Installation cannot continue! <br/> Please check if server has ZipArchive installed! ");
 }
 
 // # READ ZIP FILES AND DO A LIST
 $za = new ZipArchive();
 $za->open($unzip_dir);
 for ($i = 0; $i < $za->numFiles; $i++) {
-   $stat = $za->statIndex($i);
-   //print "<pre>";
-   //print_r( basename( $stat['name'] ) . PHP_EOL );
-   if (!preg_match('/svn|post_execute|post_uninstall|pre_execute|pre_uninstall|manifest.php/', $stat['name'])) {
-	  $arZipData[] = $stat['name'];
-   }
-   //print "</pre>";
+    $stat = $za->statIndex($i);
+    //print "<pre>";
+    //print_r( basename( $stat['name'] ) . PHP_EOL );
+    if (!preg_match('/svn|post_execute|post_uninstall|pre_execute|pre_uninstall|manifest.php/', $stat['name'])) {
+        $arZipData[] = $stat['name'];
+    }
+    //print "</pre>";
 }
 
 // # INCLUDE MANIFEST FILE
@@ -69,63 +72,63 @@ $installdefs["copy"][] = array(
 
 // # IF WE HAVE SOME FILES TO BE COPIED THEN DO A CHECK COMPARISON BETWEEN PACKAGE AND SUGARCRM INSTANCE
 if (is_array($installdefs["copy"])) {
-   foreach ($installdefs["copy"] as $entry) {
-	  $path_partsFrom = pathinfo($entry["from"]);
-	  $path_partsTo   = pathinfo($entry["to"]);
+    foreach ($installdefs["copy"] as $entry) {
+        $path_partsFrom = pathinfo($entry["from"]);
+        $path_partsTo = pathinfo($entry["to"]);
 
-	  $arCopyFrom[] = str_replace('<basepath>/', "", $path_partsFrom["dirname"]);
-	  $arCopyTo[]   = $path_partsTo["dirname"];
-   }
+        $arCopyFrom[] = str_replace('<basepath>/', "", $path_partsFrom["dirname"]);
+        $arCopyTo[] = $path_partsTo["dirname"];
+    }
 
-   // check if manifest files are type php or js
-   function getFilesToInstall($arCopyFrom, $arZipData) {
-	  $arToBeChecked = array();
-	  foreach ($arZipData as $zipFile) {
-		 if (isZipFileInList($zipFile, $arCopyFrom)) {
-			if (preg_match('/.php|.js/', $zipFile)) {
-			   $arToBeChecked[] = $zipFile;
-			}
-		 }
-	  }
-	  return $arToBeChecked;
-   }
+    // check if manifest files are type php or js
+    function getFilesToInstall($arCopyFrom, $arZipData)
+    {
+        $arToBeChecked = array();
+        foreach ($arZipData as $zipFile) {
+            if (isZipFileInList($zipFile, $arCopyFrom) && preg_match('/.php|.js/', $zipFile)) {
+                $arToBeChecked[] = $zipFile;
+            }
+        }
+        return $arToBeChecked;
+    }
 
-   // check if zip files are the same as manifest file
-   function isZipFileInList($zipFile, $arCopyFrom) {
-	  foreach ($arCopyFrom as $pathCopy) {
-		 if (stristr($zipFile, $pathCopy)) {
-			return true;
-			// break;
-		 }
-	  }
-	  return false;
-   }
+    // check if zip files are the same as manifest file
+    function isZipFileInList($zipFile, $arCopyFrom)
+    {
+        foreach ($arCopyFrom as $pathCopy) {
+            if (stripos($zipFile, $pathCopy) !== false) {
+                return true;
+                // break;
+            }
+        }
+        return false;
+    }
 
-   // create list of files from manifest that must be installed
-   $arToCheck = getFilesToInstall($arCopyTo, $arZipData);
+    // create list of files from manifest that must be installed
+    $arToCheck = getFilesToInstall($arCopyTo, $arZipData);
 
-   // check if files from module are already in the Sugar Instance
-   $arSugarFileExists = array();
-   foreach ($arToCheck as $sugarfile) {
-	  if (file_exists($sugarfile)) {
-		 $arSugarFileExists[] = $sugarfile . " file already exists! <br>";
-	  }
-   }
+    // check if files from module are already in the Sugar Instance
+    $arSugarFileExists = array();
+    foreach ($arToCheck as $sugarfile) {
+        if (file_exists($sugarfile)) {
+            $arSugarFileExists[] = $sugarfile . " file already exists! <br>";
+        }
+    }
 
-   // if match found in comparison then bring a nice install warning
-   if (count($arSugarFileExists)) {
-	  echo "<strong>Installation cannot continue! </strong><br />";
-	  echo "Integrity Check has found the same files in package/module and SugarCRM instance! <br /><br />";
+    // if match found in comparison then bring a nice installation warning
+    if (count($arSugarFileExists)) {
+        echo "<strong>Installation cannot continue! </strong><br />";
+        echo "Integrity Check has found the same files in package/module and SugarCRM instance! <br /><br />";
 
-	  echo '
+        echo '
         <script>
             document.getElementById("displayLog").style.display="block";
             $("#displayLog").css("background","none repeat scroll 0 0 orange");
             $("#displayLog").css("padding","20px");
         </script> ';
 
-	  die("<span color=red>" . implode($arSugarFileExists) . "</span>");
-   }
+        die("<span color=red>" . implode($arSugarFileExists) . "</span>");
+    }
 }
 
 /**
